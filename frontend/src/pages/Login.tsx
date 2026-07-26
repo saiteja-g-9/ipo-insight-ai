@@ -1,0 +1,16 @@
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useMutation } from '@tanstack/react-query'
+import { useForm } from 'react-hook-form'
+import { Link, useNavigate } from 'react-router-dom'
+import { z } from 'zod'
+
+import { login } from '../lib/api'
+
+const schema = z.object({ email: z.email('Enter a valid email address'), password: z.string().min(1, 'Password is required') })
+type FormData = z.infer<typeof schema>
+
+export default function Login() {
+  const navigate = useNavigate(); const { register, handleSubmit, formState: { errors } } = useForm<FormData>({ resolver: zodResolver(schema) })
+  const mutation = useMutation({ mutationFn: login, onSuccess: ({ access_token }) => { localStorage.setItem('ipo_insight_token', access_token); navigate('/dashboard') } })
+  return <main className="grid min-h-screen bg-slate-50 lg:grid-cols-2 dark:bg-slate-950"><section className="hidden bg-gradient-to-br from-slate-950 via-slate-900 to-cyan-950 p-12 text-white lg:flex lg:flex-col lg:justify-between"><Link to="/" className="text-xl font-bold">IPO Insight <span className="text-cyan-300">AI</span></Link><div><p className="text-sm font-bold uppercase tracking-widest text-cyan-300">Welcome back</p><h1 className="mt-4 max-w-md text-5xl font-black">Stay close to the next market opportunity.</h1></div><p className="text-sm text-slate-400">IPO research that keeps key information in focus.</p></section><section className="grid place-items-center p-6"><div className="w-full max-w-md"><Link to="/" className="text-sm font-bold text-cyan-700 lg:hidden">← IPO Insight AI</Link><h1 className="mt-8 text-3xl font-black dark:text-white">Welcome back</h1><p className="mt-2 text-slate-600 dark:text-slate-300">Log in to access your IPO research dashboard.</p><form onSubmit={handleSubmit((data) => mutation.mutate(data))} className="mt-8 space-y-5"><label className="block text-sm font-semibold dark:text-slate-200">Email<input {...register('email')} type="email" className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 outline-none focus:border-cyan-500 dark:border-white/15 dark:bg-slate-900 dark:text-white"/>{errors.email && <span className="mt-1 block text-xs text-rose-600">{errors.email.message}</span>}</label><label className="block text-sm font-semibold dark:text-slate-200">Password<input {...register('password')} type="password" className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 outline-none focus:border-cyan-500 dark:border-white/15 dark:bg-slate-900 dark:text-white"/>{errors.password && <span className="mt-1 block text-xs text-rose-600">{errors.password.message}</span>}</label>{mutation.isError && <p className="text-sm text-rose-600">Unable to log in. Check your credentials and backend connection.</p>}<button disabled={mutation.isPending} className="w-full rounded-xl bg-slate-950 py-3 font-bold text-white disabled:opacity-60 dark:bg-cyan-400 dark:text-slate-950">{mutation.isPending ? 'Logging in…' : 'Log in'}</button></form><p className="mt-6 text-sm text-slate-600 dark:text-slate-300">New to IPO Insight AI? <Link className="font-bold text-cyan-700 dark:text-cyan-300" to="/register">Create an account</Link></p></div></section></main>
+}
