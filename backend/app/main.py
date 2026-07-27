@@ -11,6 +11,10 @@ from app.models.user import User
 # from app.models.company import Company
 # from app.models.ipo import IPO
 
+print(">>> Creating database tables...")
+Base.metadata.create_all(bind=engine)
+print(">>> Database tables created.")
+
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
