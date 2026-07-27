@@ -2,10 +2,15 @@ from fastapi import FastAPI
 
 from app.api.router import api_router
 from app.core.config import settings
-from app.db.session import engine
 from app.db.base import Base
+from app.db.session import engine
 
-# Create all database tables if they don't exist
+# Import ALL models so SQLAlchemy knows about them
+from app.models.user import User
+# If you have these models, import them too:
+# from app.models.company import Company
+# from app.models.ipo import IPO
+
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
