@@ -11,11 +11,14 @@ from app.models.user import User
 # from app.models.company import Company
 # from app.models.ipo import IPO
 
-print(">>> Creating database tables...")
-Base.metadata.create_all(bind=engine)
-print(">>> Database tables created.")
-
-Base.metadata.create_all(bind=engine)
+try:
+    print(">>> Creating database tables...")
+    Base.metadata.create_all(bind=engine)
+    print(">>> Database tables created successfully.")
+except Exception as e:
+    import traceback
+    traceback.print_exc()
+    raise e
 
 app = FastAPI(
     title=settings.APP_NAME,
