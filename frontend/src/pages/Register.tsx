@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import axios from 'axios'
 import { useMutation } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { Link, useNavigate } from 'react-router-dom'
@@ -6,11 +7,142 @@ import { z } from 'zod'
 
 import { register as registerUser } from '../lib/api'
 
-const schema = z.object({ name: z.string().trim().min(2, 'Enter your full name'), email: z.email('Enter a valid email address'), password: z.string().min(8, 'Use at least 8 characters') })
+const schema = z.object({
+  name: z.string().trim().min(2, 'Enter your full name'),
+  email: z.email('Enter a valid email address'),
+  password: z.string().min(8, 'Use at least 8 characters'),
+})
+
 type FormData = z.infer<typeof schema>
 
 export default function Register() {
-  const navigate = useNavigate(); const { register, handleSubmit, formState: { errors } } = useForm<FormData>({ resolver: zodResolver(schema) })
-  const mutation = useMutation({ mutationFn: registerUser, onSuccess: () => navigate('/login', { state: { registered: true } }) })
-  return <main className="grid min-h-screen bg-slate-50 lg:grid-cols-2 dark:bg-slate-950"><section className="hidden bg-gradient-to-br from-cyan-700 via-blue-800 to-slate-950 p-12 text-white lg:flex lg:flex-col lg:justify-between"><Link to="/" className="text-xl font-bold">IPO Insight <span className="text-cyan-200">AI</span></Link><div><p className="text-sm font-bold uppercase tracking-widest text-cyan-200">Research with intent</p><h1 className="mt-4 max-w-md text-5xl font-black">Start building your IPO decision process.</h1></div><p className="text-sm text-cyan-100/70">Track issue dates, demand, price bands, and market context.</p></section><section className="grid place-items-center p-6"><div className="w-full max-w-md"><Link to="/" className="text-sm font-bold text-cyan-700 lg:hidden">← IPO Insight AI</Link><h1 className="mt-8 text-3xl font-black dark:text-white">Create your account</h1><p className="mt-2 text-slate-600 dark:text-slate-300">Set up your IPO research workspace.</p><form onSubmit={handleSubmit((data) => mutation.mutate(data))} className="mt-8 space-y-5"><label className="block text-sm font-semibold dark:text-slate-200">Full name<input {...register('name')} className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 outline-none focus:border-cyan-500 dark:border-white/15 dark:bg-slate-900 dark:text-white"/>{errors.name && <span className="mt-1 block text-xs text-rose-600">{errors.name.message}</span>}</label><label className="block text-sm font-semibold dark:text-slate-200">Email<input {...register('email')} type="email" className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 outline-none focus:border-cyan-500 dark:border-white/15 dark:bg-slate-900 dark:text-white"/>{errors.email && <span className="mt-1 block text-xs text-rose-600">{errors.email.message}</span>}</label><label className="block text-sm font-semibold dark:text-slate-200">Password<input {...register('password')} type="password" className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 outline-none focus:border-cyan-500 dark:border-white/15 dark:bg-slate-900 dark:text-white"/>{errors.password && <span className="mt-1 block text-xs text-rose-600">{errors.password.message}</span>}</label>{mutation.isError && <p className="text-sm text-rose-600">Unable to create account. This email may already be registered.</p>}<button disabled={mutation.isPending} className="w-full rounded-xl bg-slate-950 py-3 font-bold text-white disabled:opacity-60 dark:bg-cyan-400 dark:text-slate-950">{mutation.isPending ? 'Creating account…' : 'Create account'}</button></form><p className="mt-6 text-sm text-slate-600 dark:text-slate-300">Already registered? <Link className="font-bold text-cyan-700 dark:text-cyan-300" to="/login">Log in</Link></p></div></section></main>
+  const navigate = useNavigate()
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<FormData>({
+    resolver: zodResolver(schema),
+  })
+
+  const mutation = useMutation({
+    mutationFn: registerUser,
+    onSuccess: () => {
+      navigate('/login', { state: { registered: true } })
+    },
+  })
+
+  return (
+    <main className="grid min-h-screen bg-slate-50 lg:grid-cols-2 dark:bg-slate-950">
+      <section className="hidden bg-gradient-to-br from-cyan-700 via-blue-800 to-slate-950 p-12 text-white lg:flex lg:flex-col lg:justify-between">
+        <Link to="/" className="text-xl font-bold">
+          IPO Insight <span className="text-cyan-200">AI</span>
+        </Link>
+
+        <div>
+          <p className="text-sm font-bold uppercase tracking-widest text-cyan-200">
+            Research with intent
+          </p>
+
+          <h1 className="mt-4 max-w-md text-5xl font-black">
+            Start building your IPO decision process.
+          </h1>
+        </div>
+
+        <p className="text-sm text-cyan-100/70">
+          Track issue dates, demand, price bands, and market context.
+        </p>
+      </section>
+
+      <section className="grid place-items-center p-6">
+        <div className="w-full max-w-md">
+          <Link to="/" className="text-sm font-bold text-cyan-700 lg:hidden">
+            ← IPO Insight AI
+          </Link>
+
+          <h1 className="mt-8 text-3xl font-black dark:text-white">
+            Create your account
+          </h1>
+
+          <p className="mt-2 text-slate-600 dark:text-slate-300">
+            Set up your IPO research workspace.
+          </p>
+
+          <form
+            onSubmit={handleSubmit((data) => mutation.mutate(data))}
+            className="mt-8 space-y-5"
+          >
+            <label className="block text-sm font-semibold dark:text-slate-200">
+              Full name
+              <input
+                {...register('name')}
+                className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 outline-none focus:border-cyan-500 dark:border-white/15 dark:bg-slate-900 dark:text-white"
+              />
+              {errors.name && (
+                <span className="mt-1 block text-xs text-rose-600">
+                  {errors.name.message}
+                </span>
+              )}
+            </label>
+
+            <label className="block text-sm font-semibold dark:text-slate-200">
+              Email
+              <input
+                {...register('email')}
+                type="email"
+                className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 outline-none focus:border-cyan-500 dark:border-white/15 dark:bg-slate-900 dark:text-white"
+              />
+              {errors.email && (
+                <span className="mt-1 block text-xs text-rose-600">
+                  {errors.email.message}
+                </span>
+              )}
+            </label>
+
+            <label className="block text-sm font-semibold dark:text-slate-200">
+              Password
+              <input
+                {...register('password')}
+                type="password"
+                className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 outline-none focus:border-cyan-500 dark:border-white/15 dark:bg-slate-900 dark:text-white"
+              />
+              {errors.password && (
+                <span className="mt-1 block text-xs text-rose-600">
+                  {errors.password.message}
+                </span>
+              )}
+            </label>
+
+            {mutation.isError && (
+              <div className="rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-700">
+                <strong>Registration failed</strong>
+                <br />
+                {axios.isAxiosError(mutation.error)
+                  ? JSON.stringify(mutation.error.response?.data)
+                  : String(mutation.error)}
+              </div>
+            )}
+
+            <button
+              disabled={mutation.isPending}
+              className="w-full rounded-xl bg-slate-950 py-3 font-bold text-white disabled:opacity-60 dark:bg-cyan-400 dark:text-slate-950"
+            >
+              {mutation.isPending ? 'Creating account…' : 'Create account'}
+            </button>
+          </form>
+
+          <p className="mt-6 text-sm text-slate-600 dark:text-slate-300">
+            Already registered?{' '}
+            <Link
+              className="font-bold text-cyan-700 dark:text-cyan-300"
+              to="/login"
+            >
+              Log in
+            </Link>
+          </p>
+        </div>
+      </section>
+    </main>
+  )
 }
