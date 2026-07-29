@@ -10,6 +10,7 @@ from app.models.user import User
 # If you have these models, import them too:
 # from app.models.company import Company
 # from app.models.ipo import IPO
+from fastapi.middleware.cors import CORSMiddleware
 
 try:
     print(">>> Creating database tables...")
@@ -25,7 +26,16 @@ app = FastAPI(
     version="0.1.0",
     description="API for IPO research and investment analysis.",
 )
-
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+        "https://ipo-insight-ai-frontend.vercel.app",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 app.include_router(api_router)
 
 
